@@ -1,22 +1,29 @@
 import { useEffect, useRef, useState, Fragment } from 'react'
 import { Input, Modal, Popover, Radio } from 'antd'
 import { ArrowDownOutlined, DownOutlined, SettingOutlined } from '@ant-design/icons'
-import {ERC20_ABI} from '../contracts/abi/common/ERC20_ABI'
+import {ERC20_ABI} from '../contracts/abi/ERC20_ABI'
+import { RateXContract } from '../contracts/RateX'
 import tokenList from '../constants/tokenList.json'
 import { Token } from '../constants/Interfaces'
 import { notification } from './notifications'
 import { useDebouncedEffect } from '../utils/useDebouncedEffect'
-import {findQuote, swap} from '../sdk/swap/front_communication'
-import {Quote} from '../sdk/types'
+import {findQuote, Quote} from 'ratex-sdk'
 import './Swap.scss'
 import RoutingDiagram from './RoutingDiagram'
 import { getTokenPrice } from '../providers/OracleProvider'
 import initRPCProvider from '../providers/RPCProvider'
 import Web3 from 'web3'
+import { AlgoType } from 'ratex-sdk/utils/types'
 
 const TENDERLY_FORK_ID = process.env.REACT_APP_TENDERLY_FORK_ID
 
 const web3: Web3 = initRPCProvider(42161)
+
+export interface ResponseType {
+  isSuccess: boolean
+  txHash: string
+  errorMessage: string
+}
 
 interface SwapProps {
   chainIdState: [number, React.Dispatch<React.SetStateAction<number>>]
@@ -200,7 +207,14 @@ function Swap({ chainIdState, walletState }: SwapProps) {
     const amount = web3.utils.toBigInt(Number(tokenFromAmount) * 10 ** tokenFrom.decimals)
 
     setLoadingQuote(true)
-    findQuote(tokenFrom.address[chainId], tokenTo.address[chainId], amount)
+    findQuote(
+      tokenFrom.address[chainId],
+      tokenTo.address[chainId],
+      amount,
+      5,
+      5,
+      AlgoType.ITERATIVE_SPLITTING
+    )
       .then((quote: Quote) => {
           if (callTime < lastCallTime.current) {
               return
@@ -214,6 +228,48 @@ function Swap({ chainIdState, walletState }: SwapProps) {
     })
   }
 
+  async function _execute_swap(
+    token1: string,
+    token2: string,
+    quote: Quote,
+    amountIn: bigint,
+    slippagePercentage: number,
+    signer: string,
+    chainId: number
+  ): Promise<ResponseType> {
+
+    const amountOut = quote.quote;
+    const slippageBigInt = BigInt(slippagePercentage * 100);
+    const minAmountOut = (amountOut * (BigInt(100) - slippageBigInt)) / BigInt(100);
+
+    console.log("Route....");
+    for (let route of quote.routes) {
+      console.log(route);
+    }
+
+    const tokenInContract = new web3.eth.Contract(ERC20_ABI, token1);
+    const balance: bigint = await tokenInContract.methods.balanceOf(signer).call()
+
+    if (balance < amountIn) {
+      return { isSuccess: false, errorMessage: 'Insufficient balance' } as ResponseType
+    }
+
+    try {
+      await tokenInContract.methods.approve(RateXContract.options.address, amountIn).send({ from: signer })
+      let transactionHash: string = ''
+
+      await RateXContract.methods
+          .swap(quote.routes, token1, token2, amountIn, minAmountOut, signer)
+          .send({ from: signer })
+          .on('transactionHash', function (hash: string) {
+            transactionHash = hash
+          })
+      return { isSuccess: true, txHash: transactionHash } as ResponseType
+    } catch (err: any) {
+      return { isSuccess: false, errorMessage: err.message } as ResponseType
+    }
+  }
+
   function commitSwap() {
     if (quote === undefined) return
 
@@ -221,7 +277,7 @@ function Swap({ chainIdState, walletState }: SwapProps) {
 
     const amountIn = web3.utils.toBigInt(Number(tokenFromAmount) * 10 ** Number(tokenFrom.decimals))
 
-    swap(
+    _execute_swap(
         tokenFrom.address[chainId],
         tokenTo.address[chainId],
         quote,

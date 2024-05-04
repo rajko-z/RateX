@@ -39,16 +39,4 @@ async function getTokenPrice(tokenTicker: string, chainId: number): Promise<numb
   }
 }
 
-// not using this but we might need this in the future
-async function convertTokenAmountToUSD(amount: number, tokenTicker: string, chainId: number) {
-  try {
-    let USDValue = await getTokenPrice(tokenTicker, chainId)
-    // @ts-ignore
-    return USDValue !== -1 ? USDValue * amount : -1
-  } catch {
-    console.error('Error fetching the amount in USD')
-    return -1
-  }
-}
-
 export { getTokenPrice }

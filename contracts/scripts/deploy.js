@@ -11,13 +11,13 @@ const {
 const {saveAbiToFile, saveAddresses} = require('./utils/saveABIAndAddresses');
 
 async function main() {
-    console.log('Deploying contracts...')
-    const {rateX} = await deployRateX()
-    const {uniswapHelper} = await deployUniswapHelper()
-    const {balancerHelper} = await deployBalancerHelper()
-    const {sushiHelper} = await deploySushiSwapHelper()
-    const {curveHelper} = await deployCurveHelper()
-    const {camelotHelper} = await deployCamelotHelper()
+    console.log('Deploying contracts...');
+    const rateX = await deployRateX();
+    const uniswapHelper = await deployUniswapHelper();
+    const balancerHelper = await deployBalancerHelper();
+    const sushiHelper = await deploySushiSwapHelper();
+    const curveHelper = await deployCurveHelper();
+    const camelotHelper = await deployCamelotHelper();
 
     const rateXAddress = await rateX.getAddress();
     console.log('RateX address: ' + rateXAddress);
