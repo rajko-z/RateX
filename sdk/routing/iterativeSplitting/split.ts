@@ -4,7 +4,7 @@ import {multiHopSwap} from "./multiHopSwap";
 import objectHash from "object-hash";
 
 // percentage of the amountIn that we split into
-const step: number = 5
+const STEP: number = 5
 
 /**
  * Algorithm that splits the input amount into (100/step) parts of step% each and finds the best route for each split.
@@ -30,18 +30,18 @@ function findRouteWithIterativeSplitting(
     let amountOut: bigint = BigInt(0)
     const poolMap: Map<string, Pool> = new Map<string, Pool>(pools.map((pool: Pool) => [pool.poolId, pool]))
     const routes: Map<string, Route> = new Map<string, Route>()
-    const splitAmountIn: bigint = (amountIn * BigInt(step)) / BigInt(100)
+    const splitAmountIn: bigint = (amountIn * BigInt(STEP)) / BigInt(100)
 
-    for (let i = 0; i < 100; i += step) {
+    for (let i = 0; i < 100; i += STEP) {
         const route: Route = multiHopSwap(splitAmountIn, tokenIn, tokenOut, graph)
         const routeHash = objectHash(route.swaps)
 
         let existingRoute: Route | undefined = routes.get(routeHash)
         if (!existingRoute) {
-            route.percentage = step
+            route.percentage = STEP
             routes.set(routeHash, route)
         } else {
-            existingRoute.percentage += step
+            existingRoute.percentage += STEP
         }
 
         amountOut += route.quote
@@ -88,10 +88,10 @@ function _createGraph(pools: Pool[]): Map<string, Pool[]> {
     const graph: Map<string, Pool[]> = new Map<string, Pool[]>()
     for (let pool of pools) {
       for (let token of pool.tokens) {
-        if (!graph.has(token._address)) {
-          graph.set(token._address, [])
+        if (!graph.has(token._address.toLowerCase())) {
+          graph.set(token._address.toLowerCase(), [])
         }
-        graph.get(token._address)?.push(pool)
+        graph.get(token._address.toLowerCase())?.push(pool)
       }
     }
   

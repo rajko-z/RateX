@@ -11,7 +11,7 @@ import {findQuote, Quote} from 'ratex-sdk'
 import './Swap.scss'
 import RoutingDiagram from './RoutingDiagram'
 import { getTokenPrice } from '../providers/OracleProvider'
-import initRPCProvider from '../providers/RPCProvider'
+import initRPCProvider, { tenderlyForkEndpoint } from '../providers/RPCProvider'
 import Web3 from 'web3'
 import { AlgoType } from 'ratex-sdk/utils/types'
 
@@ -211,9 +211,8 @@ function Swap({ chainIdState, walletState }: SwapProps) {
       tokenFrom.address[chainId],
       tokenTo.address[chainId],
       amount,
-      5,
-      5,
-      AlgoType.ITERATIVE_SPLITTING
+      AlgoType.UNI_V3_SMART_ROUTER_LIKE_ALGO,
+      tenderlyForkEndpoint
     )
       .then((quote: Quote) => {
           if (callTime < lastCallTime.current) {

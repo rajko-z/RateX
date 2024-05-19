@@ -21,6 +21,12 @@ module.exports = {
   },
   defaultNetwork: "hardhat",
   networks: {
+    hardhat: {
+      chainId: 31337,
+      forking: {
+        url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      }
+    },
     tenderly: {
         chainId: 42161,
         url: `https://rpc.tenderly.co/fork/${process.env.TENDERLY_FORK_ID}`,

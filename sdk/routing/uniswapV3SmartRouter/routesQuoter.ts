@@ -47,7 +47,6 @@ function _getSingleRouteWithSingleQuote(route: TRoute, amount: AmountPercentage)
         const tokenOut = step.tokenOut;
 
         amountOut = step.pool.calculateExpectedOutputAmount(tokenIn, tokenOut, amountOut);
-
         if (amountOut <= BigInt(0)) {
             break;
         }

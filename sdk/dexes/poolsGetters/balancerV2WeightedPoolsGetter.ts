@@ -63,7 +63,9 @@ export default class BalancerV2WeightedPoolsGetter implements PoolsGetter {
 
     for (const pool of poolInfos) {
         // return token address after '-' split
-        [pool.tokens[0]._address, pool.tokens[1]._address] = pool.tokens.map(token => token._address.split("-")[1])
+        for (let i = 0; i < pool.tokens.length; ++i) {
+          pool.tokens[i]._address = pool.tokens[i]._address.split("-")[1];
+        }
 
         // @ts-ignore
         const res: any[] = await BalancerHelperContract.methods // @ts-ignore
@@ -160,18 +162,13 @@ function createPoolFromGraph(jsonData: any, dexId: string): PoolInfo {
   const pool: PoolInfo = {
     poolId: jsonData.id,
     dexId: dexId,
-    tokens: [
-      {
-        _address: jsonData.tokens[0].id,
-        decimals: jsonData.tokens[0].decimals,
-        name: jsonData.tokens[0].name
-      },
-      {
-        _address: jsonData.tokens[1].id,
-        decimals: jsonData.tokens[1].decimals,
-        name: jsonData.tokens[1].name
+    tokens: jsonData.tokens.map((token: any, _: any) => {
+      return {
+        _address: token.id,
+        decimals: token.decimals,
+        name: token.name
       }
-    ]
+    })
   }
   return pool
 }

@@ -1,8 +1,8 @@
 hre = require("hardhat");
 const {expect} = require("chai")
 const {config} = require("../addresses.config");
-const {approveToContract, sendERCTokensToUser, sendWethTokensToUser} = require("../scripts/utils/contract");
-const {deployCurveDex} = require("../scripts/utils/deployment");
+const {approveToContract, sendERCTokensToUser, sendWethTokensToUser} = require("../scripts/utils");
+const {deployCurveDex} = require("../scripts/deploy");
 
 describe("Tests for swapping on Curve", async function () {
     const addresses = config[hre.network.config.chainId];
@@ -18,7 +18,8 @@ describe("Tests for swapping on Curve", async function () {
     });
 
     it("Should swap with curve2pool", async function () {
-        const {curve, addr1} = await deployCurveDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const curve = await deployCurveDex();
 
         const USDT = await hre.ethers.getContractAt("IERC20", addresses.tokens.USDT);
         const USDCE = await hre.ethers.getContractAt("IERC20", addresses.tokens.USDCE);
@@ -50,7 +51,8 @@ describe("Tests for swapping on Curve", async function () {
     });
 
     it("Should revert because tokens not found in pool", async function () {
-        const {curve, addr1} = await deployCurveDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const curve = await deployCurveDex();
 
         const amountIn = hre.ethers.parseEther("1");
 

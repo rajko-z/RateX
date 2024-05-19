@@ -1,8 +1,8 @@
 hre = require("hardhat");
 const {expect} = require("chai")
 const {config} = require("../addresses.config");
-const {sendWethTokensToUser, approveToContract, sendERCTokensToUser} = require("../scripts/utils/contract");
-const {deploySushiDex} = require("../scripts/utils/deployment");
+const {sendWethTokensToUser, approveToContract, sendERCTokensToUser} = require("../scripts/utils");
+const {deploySushiDex} = require("../scripts/deploy");
 
 describe("Tests for swapping on sushiswap", async function () {
 
@@ -19,7 +19,8 @@ describe("Tests for swapping on sushiswap", async function () {
     });
 
     it("Should swap wei to dai tokens", async function () {
-        const {sushiSwap, addr1} = await deploySushiDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const sushiSwap = await deploySushiDex();
 
         const amountIn = hre.ethers.parseEther("100");
         await sendWethTokensToUser(addr1, amountIn);

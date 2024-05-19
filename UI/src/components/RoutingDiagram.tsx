@@ -1,4 +1,4 @@
-import { useEffect, useState, Fragment } from 'react'
+import { Fragment } from 'react'
 import { tokenAddressToImage } from '../constants/tokenAddressToImage'
 import { dexIdToUrl } from '../constants/dexIdToUrl'
 import { ArrowRightOutlined } from '@ant-design/icons'
@@ -23,7 +23,7 @@ function RouteComponent({ route }: { route: Route }) {
 function TokenArrow({ swap }: { swap: SwapStep }) {
   return (
     <div className="routingDiagramArrow">
-      <a href={dexIdToUrl[swap.dexId].replace('ADDRESS', swap.poolId)} target="_blank">
+      <a href={dexIdToUrl[swap.dexId].replace('ADDRESS', swap.poolId)} target="_blank" rel="noreferrer">
         <div className="arrow">
           <ArrowRightOutlined />
         </div>
@@ -42,7 +42,7 @@ function TokenComponent({ token }: { token: string }) {
   }
   return (
     <div className="routingDiagramToken tooltip">
-      <a href={`https://arbiscan.io/token/${token}`} target="_blank">
+      <a href={`https://arbiscan.io/token/${token}`} target="_blank" rel="noreferrer">
         <img src={img} alt="assetFromLogo" />
       </a>
       <span className="tooltiptext">{ticker}</span>

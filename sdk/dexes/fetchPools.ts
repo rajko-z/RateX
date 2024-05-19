@@ -12,8 +12,8 @@ async function initializeDexes(): Promise<void> {
       'sushiSwapV2PoolsGetter.ts',
       'uniswapV3PoolsGetter.ts',
       'balancerV2WeightedPoolsGetter.ts',
+      'camelotV2PoolsGetter.ts',
       'curvePoolsGetter.ts',
-      'camelotV2PoolsGetter.ts' 
     ]
     for (const file of files) {
       if (file.endsWith('.ts')) {
@@ -103,7 +103,13 @@ async function getTopPools(numPools: number = 5): Promise<void> {
 * top numTopPools by TVL from each DEX
 * top numTopPools that contain tokenFrom and tokenTo from each DEX (possible direct swap)
 */
-async function fetchPools(tokenFrom: string, tokenTo: string, numFromToPools: number = 5, numTopPools: number = 5): Promise<Pool[]> {
+async function fetchPools(
+  tokenFrom: string,
+  tokenTo: string,
+  numFromToPools: number = 5,
+  numTopPools: number = 5,
+  onlyPoolsWithTwoTokens: boolean = false
+): Promise<Pool[]> {
   let pools: Pool[] = []
   dexesPools.forEach((poolInfos: PoolInfo[], dex: PoolsGetter) => {
     dexesPools.set(dex, [])
@@ -121,6 +127,10 @@ async function fetchPools(tokenFrom: string, tokenTo: string, numFromToPools: nu
 
   filterDuplicatePools()
 
+  if (onlyPoolsWithTwoTokens) {
+    removePoolsWithMoreThanTwoTokens()
+  }
+
   // call Solidity for additional pool data
   const dexPoolsPromises: Promise<Pool[]>[] = []
   for (let [dex, poolInfos] of dexesPools.entries()) {
@@ -132,6 +142,15 @@ async function fetchPools(tokenFrom: string, tokenTo: string, numFromToPools: nu
   })
 
   return pools
+}
+
+function removePoolsWithMoreThanTwoTokens(): void {
+  dexesPools.forEach((poolInfos: PoolInfo[], dex: PoolsGetter, self) => {
+    const filteredPoolInfos = poolInfos.filter((poolInfo: PoolInfo) => {
+      return poolInfo.tokens.length === 2
+    })
+    self.set(dex, filteredPoolInfos)
+  })
 }
 
 function filterDuplicatePools(): void {

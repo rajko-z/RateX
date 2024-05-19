@@ -1,14 +1,14 @@
 import Web3 from 'web3'
 
-const TENDERLY_FORK_ID = '57a7e872-732d-4e91-8637-f2823a470047';
-const tenderlyForkEndpoint: string = `https://rpc.tenderly.co/fork/${TENDERLY_FORK_ID}`;
+let web3: Web3;
 
-function initArbitrumProvider(): Web3 {
-  return new Web3(new Web3.providers.HttpProvider(tenderlyForkEndpoint));
+export function initRPCProvider(rpcProviderUrl: string): void {
+  web3 = new Web3(new Web3.providers.HttpProvider(rpcProviderUrl));
 }
 
-function initRPCProvider(): Web3 {
-  return initArbitrumProvider();
+export function getInitializedProvider(): Web3 {
+  if (!web3) {
+    throw new Error('Web3 provider is not initialized');
+  }
+  return web3;
 }
-
-export default initRPCProvider;

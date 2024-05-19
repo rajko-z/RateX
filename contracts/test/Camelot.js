@@ -1,8 +1,8 @@
 hre = require("hardhat");
 const {expect} = require("chai")
 const {config} = require("../addresses.config");
-const {deployCamelotDex} = require("../scripts/utils/deployment");
-const {approveToContract, sendWethTokensToUser} = require("../scripts/utils/contract");
+const {deployCamelotDex} = require("../scripts/deploy");
+const {approveToContract, sendWethTokensToUser} = require("../scripts/utils");
 
 describe("Tests for Camelot V2", async function () {
 
@@ -19,7 +19,8 @@ describe("Tests for Camelot V2", async function () {
     });
 
     it("Should swap weth to usdt", async function() {
-        const {camelot, addr1} = await deployCamelotDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const camelot = await deployCamelotDex();
         const WETH = await hre.ethers.getContractAt("IWeth", addresses.tokens.WETH);
         const USDT = await hre.ethers.getContractAt("IERC20", addresses.tokens.USDT);
 

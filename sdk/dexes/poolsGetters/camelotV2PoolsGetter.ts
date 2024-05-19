@@ -49,7 +49,7 @@ export default class CamelotV2PoolsGetter implements PoolsGetter {
 
   async getAdditionalPoolDataOnchain(poolInfos: PoolInfo[]): Promise<Pool[]> {
     const rawData: any[][] = await CamelotHelperContract.methods.getPoolsData(poolInfos).call()
-    
+
     const pools: Pool[] = []
     for(let pool of rawData) {
 

@@ -26,8 +26,8 @@ export class CurvePool extends Pool {
   }
 
   update(tokenIn: string, tokenOut: string, amountIn: bigint, amountOut: bigint): void {
-    const i = this.tokens.findIndex((token) => token._address === tokenIn)
-    const j = this.tokens.findIndex((token) => token._address === tokenOut)
+    const i = this.tokens.findIndex((token) => token._address.toLowerCase() === tokenIn.toLowerCase())
+    const j = this.tokens.findIndex((token) => token._address.toLowerCase() === tokenOut.toLowerCase())
 
     this.reserves[i] = this.reserves[i].plus(BigNumber(amountIn.toString()))
     this.reserves[j] = this.reserves[j].minus(BigNumber(amountOut.toString()))
@@ -43,8 +43,8 @@ export class CurvePool extends Pool {
 */
 function calculateOutputAmount(pool: CurvePool, tokenA: string, tokenB: string, dx: BigNumber): bigint {
   // Get the index of the token we are swapping from and to
-  const i = pool.tokens.findIndex((token) => token._address === tokenA)
-  const j = pool.tokens.findIndex((token) => token._address === tokenB)
+  const i = pool.tokens.findIndex((token) => token._address.toLowerCase() === tokenA.toLowerCase())
+  const j = pool.tokens.findIndex((token) => token._address.toLowerCase() === tokenB.toLowerCase())
 
   // Get the precision of the token with the most decimals
   const maxDecimals = Math.max(...pool.tokens.map((token) => token.decimals))

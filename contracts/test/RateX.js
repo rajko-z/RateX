@@ -2,8 +2,8 @@ hre = require("hardhat");
 const {loadFixture} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const {expect} = require("chai");
 const {config} = require("../addresses.config");
-const {deployRateX, deploySushiDex, deployUniswapDex} = require("../scripts/utils/deployment");
-const {sendWethTokensToUser, approveToContract} = require("../scripts/utils/contract");
+const {deployRateX, deploySushiDex, deployUniswapDex} = require("../scripts/deploy");
+const {sendWethTokensToUser, approveToContract} = require("../scripts/utils");
 
 describe("Tests for main RateX contract", async function () {
 
@@ -65,8 +65,8 @@ describe("Tests for main RateX contract", async function () {
     }
 
     it("Should deploy RateX contract", async function () {
-        const {sushiSwap} = await deploySushiDex();
-        const {uniswap} = await deployUniswapDex();
+        const sushiSwap = await deploySushiDex();
+        const uniswap = await deployUniswapDex();
         const sushiSwapAddress = await sushiSwap.getAddress();
         const uniswapAddress = await uniswap.getAddress();
 
@@ -95,7 +95,7 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should add new dex", async function () {
-        const {rateX} = await loadFixture(deployRateXFixture);
+        const rateX = await loadFixture(deployRateXFixture);
         const newDex = {dexId: TEST_DEX, dexAddress: TEST_ADDRESS};
 
         const supportedDexesBefore = await rateX.getSupportedDexes();
@@ -118,14 +118,14 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when adding new dex with existing id", async function () {
-        const {rateX} = await loadFixture(deployRateXFixture);
+        const rateX = await loadFixture(deployRateXFixture);
         const newDex = {dexId: "SUSHI_V2", dexAddress: TEST_ADDRESS};
 
         await expect(rateX.addDex(newDex)).to.be.revertedWith("Dex already exists");
     });
 
     it("Should replace existing dex", async function () {
-        const {rateX} = await loadFixture(deployRateXFixture);
+        const rateX = await loadFixture(deployRateXFixture);
         const newDex = {dexId: "SUSHI_V2", dexAddress: TEST_ADDRESS};
         const expectedOldDexAddress = await rateX.dexes("SUSHI_V2");
 
@@ -154,14 +154,15 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when replacing non-existing dex", async function () {
-        const {rateX} = await loadFixture(deployRateXFixture);
+        const rateX = await loadFixture(deployRateXFixture);
         const newDex = {dexId: TEST_DEX, dexAddress: TEST_ADDRESS};
 
         await expect(rateX.replaceDex(newDex)).to.be.revertedWith("Dex does not exist");
     });
 
     it("Should revert when replacing without authorization", async function () {
-        const {rateX, addr2} = await loadFixture(deployRateXFixture);
+        const [_, addr2] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
         const newDex = {dexId: "SUSHI_V2", dexAddress: TEST_ADDRESS};
 
         await expect(rateX.connect(addr2).replaceDex(newDex))
@@ -169,7 +170,7 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should remove existing dex", async function () {
-        const {rateX} = await loadFixture(deployRateXFixture);
+        const rateX = await loadFixture(deployRateXFixture);
         const dexToRemove = "SUSHI_V2";
 
         const supportedDexes = await rateX.getSupportedDexes();
@@ -191,18 +192,20 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when removing non-existing dex", async function () {
-        const {rateX} = await loadFixture(deployRateXFixture);
+        const rateX = await loadFixture(deployRateXFixture);
         await expect(rateX.removeDex(TEST_DEX)).to.be.revertedWith("Dex does not exist");
     });
 
     it("Should revert when removing dex without authorization", async function () {
-        const {rateX, addr2} = await loadFixture(deployRateXFixture);
+        const [_, addr2] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
         await expect(rateX.connect(addr2).removeDex("SUSHI_V2"))
             .to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("Should revert when route is empty", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await expect(rateX.swap(
             [],
@@ -215,7 +218,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when not enough approval was given", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, 10);
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, 1);
@@ -231,7 +235,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when user does not have enough founds", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, 10);
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, 20);
@@ -247,7 +252,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when amount in does not match route", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, 10);
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, 20);
@@ -266,7 +272,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when dex does not exist", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, 10);
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, 20);
@@ -289,7 +296,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert for transfer failed when inserting invalid tokenIn in one of the routes", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, hre.ethers.parseEther("10"));
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, hre.ethers.parseEther("10"));
@@ -309,7 +317,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert when amount out does not match", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, hre.ethers.parseEther("10"));
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, hre.ethers.parseEther("10"));
@@ -330,7 +339,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should revert if amount out is lesser than min amount set by user", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         await sendWethTokensToUser(addr1, hre.ethers.parseEther("10"));
         await approveToContract(addr1, await rateX.getAddress(), addresses.tokens.WETH, hre.ethers.parseEther("10"));
@@ -346,7 +356,8 @@ describe("Tests for main RateX contract", async function () {
     })
 
     it("Should execute simple swap", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
         const contractAddress = await rateX.getAddress();
         const WBTC = await hre.ethers.getContractAt("IERC20", addresses.tokens.WBTC);
         const WETH = await hre.ethers.getContractAt("IERC20", addresses.tokens.WETH);
@@ -396,7 +407,8 @@ describe("Tests for main RateX contract", async function () {
     });
 
     it("Should execute complex swap", async function () {
-        const {rateX, addr1} = await loadFixture(deployRateXFixture);
+        const [addr1] = await hre.ethers.getSigners();
+        const rateX = await loadFixture(deployRateXFixture);
 
         const WETH = await hre.ethers.getContractAt("IERC20", addresses.tokens.WETH);
         const USDT = await hre.ethers.getContractAt("IERC20", addresses.tokens.USDT);

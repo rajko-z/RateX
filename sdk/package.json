@@ -21,8 +21,8 @@
     "ts-node": "^10.9.1",
     "tstl": "^2.5.13",
     "bignumber.js": "^9.1.2",
-    "web3": "^4.0.3"
-
+    "web3": "^4.0.3",
+    "dotenv": "^16.3.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

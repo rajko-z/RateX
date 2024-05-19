@@ -1,8 +1,8 @@
 hre = require("hardhat");
 const {expect} = require("chai")
 const {config} = require("../addresses.config");
-const {deployUniswapDex} = require("../scripts/utils/deployment");
-const {sendWethTokensToUser, approveToContract} = require("../scripts/utils/contract");
+const {deployUniswapDex} = require("../scripts/deploy");
+const {sendWethTokensToUser, approveToContract} = require("../scripts/utils");
 
 describe("Tests for swapping on uniswap v3", async function () {
 
@@ -19,8 +19,8 @@ describe("Tests for swapping on uniswap v3", async function () {
     });
 
     it("Should swap eth for wbtc", async function () {
-
-        const {uniswap, addr1} = await deployUniswapDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const uniswap = await deployUniswapDex();
         const WBTC = await hre.ethers.getContractAt("IERC20", addresses.tokens.WBTC);
         const WETH = await hre.ethers.getContractAt("IWeth", addresses.tokens.WETH);
 
@@ -50,7 +50,8 @@ describe("Tests for swapping on uniswap v3", async function () {
     });
 
     it("Should revert because of slippage", async function () {
-        const {uniswap, addr1} = await deployUniswapDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const uniswap = await deployUniswapDex();
 
         await sendWethTokensToUser(addr1, hre.ethers.parseEther("2"))
         await approveToContract(addr1, await uniswap.getAddress(), addresses.tokens.WETH, hre.ethers.parseEther("2"));

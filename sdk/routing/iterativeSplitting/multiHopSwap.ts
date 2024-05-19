@@ -42,8 +42,12 @@ function multiHopSwap(
             return
           }
 
-          const amountOut: bigint = pool.calculateExpectedOutputAmount(tokenA, tokenB._address, dpInfo.amountOut)
-          if (amountOut <= 0) {
+          let amountOut: bigint = pool.calculateExpectedOutputAmount(tokenA, tokenB._address, dpInfo.amountOut)
+          if (pool.dexId === 'CURVE') {
+            amountOut = pool.calculateExpectedOutputAmount(tokenA, tokenB._address, dpInfo.amountOut)
+          }
+
+          if (amountOut <= BigInt(0)) {
             return
           }
 

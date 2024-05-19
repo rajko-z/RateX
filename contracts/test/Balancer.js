@@ -1,8 +1,8 @@
 hre = require("hardhat");
 const {expect} = require("chai")
 const {config} = require("../addresses.config");
-const {deployBalancerDex, deployBalancerHelper} = require("../scripts/utils/deployment");
-const {sendWethTokensToUser, approveToContract} = require("../scripts/utils/contract");
+const {deployBalancerDex, deployBalancerHelper} = require("../scripts/deploy");
+const {sendWethTokensToUser, approveToContract} = require("../scripts/utils");
 
 describe("Tests for Balancer", async function () {
     const addresses = config[hre.network.config.chainId];
@@ -21,9 +21,9 @@ describe("Tests for Balancer", async function () {
     const examplePoolAddress = "0x32dF62dc3aEd2cD6224193052Ce665DC18165841";
 
     it("Should get weighted pool info", async function () {
-        const {balancerHelper} = await deployBalancerHelper();
+        const balancerHelper = await deployBalancerHelper();
 
-        const [decimals, invariant, tokens, balances, weights, swapFeePercentage] =
+        const [decimals, _, tokens, balances, weights, swapFeePercentage] =
             await balancerHelper.getWeightedPoolInfo(examplePoolId);
 
         expect(decimals).to.equals(18);
@@ -34,7 +34,8 @@ describe("Tests for Balancer", async function () {
     });
 
     it("Should swap weth for rdnt", async function () {
-        const {balancer, addr1} = await deployBalancerDex();
+        const [addr1] = await hre.ethers.getSigners();
+        const balancer = await deployBalancerDex();
         const WETH = await hre.ethers.getContractAt("IWeth", addresses.tokens.WETH);
         const RDNT = await hre.ethers.getContractAt("IERC20", addresses.tokens.RDNT);
 
